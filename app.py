@@ -1194,11 +1194,17 @@ def run_dashboard():
                     )[0]
 
                 # Render Network Graph
-                fig_network = net_analyzer.generate_plotly_figure(
-                    top_n=net_top_n,
-                    color_by=color_metric,
-                    is_dark=is_dark
-                )
+                try:
+                    fig_network = net_analyzer.generate_plotly_figure(
+                        top_n=net_top_n,
+                        color_by=color_metric,
+                        is_dark=is_dark
+                    )
+                except Exception as ex:
+                    import traceback
+                    st.error(f"Error generating network: {ex}")
+                    st.code(traceback.format_exc())
+                    fig_network = None
 
                 if fig_network:
                     fig_network.update_layout(

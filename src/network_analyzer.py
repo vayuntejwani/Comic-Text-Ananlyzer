@@ -7,6 +7,8 @@ and creates interactive Plotly network visualizations.
 
 import math
 from typing import Dict, List, Optional, Tuple, Any
+import networkx as nx
+import plotly.graph_objects as go
 from .character_popularity import CharacterPopularityEngine, CharacterStats
 
 
@@ -62,36 +64,27 @@ class ConversationalNetworkAnalyzer:
         n_nodes = len(selected_names)
         norm_factor = max(1, n_nodes - 1)
 
-        try:
-            import networkx as nx
-            G = nx.DiGraph()
-            for name in selected_names:
-                G.add_node(name)
-            for edge in edges:
-                G.add_edge(edge["source"], edge["target"], weight=edge["weight"])
+        G = nx.DiGraph()
+        for name in selected_names:
+            G.add_node(name)
+        for edge in edges:
+            G.add_edge(edge["source"], edge["target"], weight=edge["weight"])
 
-            if n_nodes > 1:
-                deg_c = nx.degree_centrality(G)
-                in_deg_c = nx.in_degree_centrality(G)
-                out_deg_c = nx.out_degree_centrality(G)
-                bet_c = nx.betweenness_centrality(G, weight="weight")
-                try:
-                    pr = nx.pagerank(G, weight="weight")
-                except Exception:
-                    pr = {name: 1.0 / n_nodes for name in selected_names}
+        if n_nodes > 1:
+            deg_c = nx.degree_centrality(G)
+            in_deg_c = nx.in_degree_centrality(G)
+            out_deg_c = nx.out_degree_centrality(G)
+            bet_c = nx.betweenness_centrality(G, weight="weight")
+            try:
+                pr = nx.pagerank(G, weight="weight")
+            except Exception:
+                pr = {name: 1.0 / n_nodes for name in selected_names}
 
-                degree_cent_map = {k: round(v, 4) for k, v in deg_c.items()}
-                in_degree_cent_map = {k: round(v, 4) for k, v in in_deg_c.items()}
-                out_degree_cent_map = {k: round(v, 4) for k, v in out_deg_c.items()}
-                betweenness_map = {k: round(v, 4) for k, v in bet_c.items()}
-                pagerank_map = {k: round(v, 4) for k, v in pr.items()}
-        except ImportError:
-            # Fallback native computation for degree centralities
-            for name in selected_names:
-                total_deg = in_degrees.get(name, 0) + out_degrees.get(name, 0)
-                degree_cent_map[name] = round(total_deg / (2 * norm_factor), 4)
-                in_degree_cent_map[name] = round(in_degrees.get(name, 0) / norm_factor, 4)
-                out_degree_cent_map[name] = round(out_degrees.get(name, 0) / norm_factor, 4)
+            degree_cent_map = {k: round(v, 4) for k, v in deg_c.items()}
+            in_degree_cent_map = {k: round(v, 4) for k, v in in_deg_c.items()}
+            out_degree_cent_map = {k: round(v, 4) for k, v in out_deg_c.items()}
+            betweenness_map = {k: round(v, 4) for k, v in bet_c.items()}
+            pagerank_map = {k: round(v, 4) for k, v in pr.items()}
 
         # Compile node records
         node_records: List[Dict[str, Any]] = []
@@ -131,12 +124,6 @@ class ConversationalNetworkAnalyzer:
         Creates an interactive Plotly Figure representing the character interaction network.
         Nodes are sized proportionally to popularity score and positioned with spring layout.
         """
-        try:
-            import plotly.graph_objects as go
-            import networkx as nx
-        except ImportError:
-            return None
-
         net_data = self.build_network_data(top_n=top_n)
         nodes = net_data["nodes"]
         edges = net_data["edges"]
