@@ -171,9 +171,9 @@ class ConversationalNetworkAnalyzer:
         plot_bg = 'rgba(0, 0, 0, 0)' if is_dark else 'rgba(241, 245, 249, 0.6)'
 
         for e in edges:
-            x0, y0 = pos[e["source"]]
-            x1, y1 = pos[e["target"]]
-            weight = e["weight"]
+            x0, y0 = float(pos[e["source"]][0]), float(pos[e["source"]][1])
+            x1, y1 = float(pos[e["target"]][0]), float(pos[e["target"]][1])
+            weight = int(e["weight"])
 
             edge_x.extend([x0, x1, None])
             edge_y.extend([y0, y1, None])
@@ -186,12 +186,12 @@ class ConversationalNetworkAnalyzer:
             dist = math.hypot(dx, dy)
             if dist > 0.05:
                 # Arrow position at 75% along the line
-                ax = x0 + 0.75 * dx
-                ay = y0 + 0.75 * dy
-                arrow_width = max(1.0, min(4.5, 1.0 + 3.0 * (weight / max_weight)))
+                ax = float(x0 + 0.75 * dx)
+                ay = float(y0 + 0.75 * dy)
+                arrow_width = float(max(1.0, min(4.5, 1.0 + 3.0 * (weight / max_weight))))
                 annotations.append(dict(
-                    ax=x0 + 0.60 * dx,
-                    ay=y0 + 0.60 * dy,
+                    ax=float(x0 + 0.60 * dx),
+                    ay=float(y0 + 0.60 * dy),
                     x=ax,
                     y=ay,
                     xref='x',
@@ -226,17 +226,17 @@ class ConversationalNetworkAnalyzer:
         score_range = max(1.0, max_score - min_score)
 
         for n in nodes:
-            x, y = pos[n["character"]]
+            x, y = float(pos[n["character"]][0]), float(pos[n["character"]][1])
             node_x.append(x)
             node_y.append(y)
 
             # Node size scaled from 18px to 52px based on popularity score
-            normalized_score = (n["score"] - min_score) / score_range
-            radius = 18 + normalized_score * 34
+            normalized_score = float((n["score"] - min_score) / score_range)
+            radius = float(18.0 + normalized_score * 34.0)
             node_sizes.append(radius)
 
             # Color metric
-            metric_val = n.get(color_by, n["score"])
+            metric_val = float(n.get(color_by, n["score"]))
             node_colors.append(metric_val)
 
             node_labels.append(n["character"])
@@ -290,8 +290,8 @@ class ConversationalNetworkAnalyzer:
                 hovermode='closest',
                 margin=dict(b=20, l=20, r=20, t=50),
                 annotations=annotations,
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.35, 1.35]),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.35, 1.35]),
                 plot_bgcolor=plot_bg,
                 paper_bgcolor='rgba(0, 0, 0, 0)',
                 height=550

@@ -1207,7 +1207,12 @@ def run_dashboard():
                         font=dict(color=chart_font_color),
                         title=dict(font=dict(color=chart_font_color, size=16))
                     )
-                    st.plotly_chart(fig_network, use_container_width=True, config={'displayModeBar': False})
+                    st.plotly_chart(
+                        fig_network,
+                        width="stretch",
+                        theme=None,
+                        config={'displayModeBar': False, 'responsive': True}
+                    )
                 else:
                     st.warning("Could not render network graph.")
 
