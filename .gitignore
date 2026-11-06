@@ -4,3 +4,7 @@ __pycache__/
 *.log
 .vscode/
 .idea/
+data/*.zip
+data/cornell_movie_dialogs_corpus/
+data/cornell_sample_5000.txt
+data/uploaded_temp.txt

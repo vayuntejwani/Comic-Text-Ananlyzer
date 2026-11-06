@@ -29,42 +29,83 @@ st.set_page_config(
 # Custom Styling
 st.markdown("""
 <style>
+    /* Increase width of the left sidebar */
+    [data-testid="stSidebar"] {
+        min-width: 450px !important;
+        max-width: 500px !important;
+    }
+    section[data-testid="stSidebar"] > div {
+        width: 100% !important;
+    }
+    /* Increase sidebar font sizes and visibility */
+    [data-testid="stSidebar"] p, 
+    [data-testid="stSidebar"] label, 
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] div {
+        font-size: 1.08rem !important;
+        font-weight: 500 !important;
+    }
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        font-size: 1.45rem !important;
+        font-weight: 700 !important;
+    }
+    [data-testid="stSidebar"] .stRadio label {
+        font-size: 1.12rem !important;
+        font-weight: 600 !important;
+        padding: 4px 0 !important;
+    }
+    [data-testid="stSidebar"] .stSelectbox label,
+    [data-testid="stSidebar"] .stSlider label {
+        font-size: 1.15rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Main body font size and theme-adaptive visibility */
     .main-title {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #1E293B;
-        margin-bottom: 0.2rem;
+        font-size: 2.6rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 0.3rem !important;
+        letter-spacing: -0.5px;
     }
     .sub-title {
-        font-size: 1.05rem;
-        color: #64748B;
-        margin-bottom: 1.5rem;
+        font-size: 1.25rem !important;
+        font-weight: 450 !important;
+        margin-bottom: 1.8rem !important;
+        line-height: 1.5 !important;
+        opacity: 0.85;
     }
-    .metric-card {
-        background-color: #F8FAFC;
-        border-radius: 8px;
-        padding: 16px;
-        border: 1px solid #E2E8F0;
-        text-align: center;
+    [data-testid="stMetricValue"] {
+        font-size: 2.2rem !important;
+        font-weight: 700 !important;
+    }
+    [data-testid="stMetricLabel"] {
+        font-size: 1.15rem !important;
+        font-weight: 600 !important;
+    }
+    p, li, [data-testid="stMarkdownContainer"] p {
+        font-size: 1.08rem !important;
+        line-height: 1.6 !important;
     }
     .token-chip {
         display: inline-block;
-        padding: 3px 8px;
-        margin: 3px;
-        border-radius: 4px;
-        font-size: 0.85rem;
+        padding: 5px 12px;
+        margin: 4px;
+        border-radius: 6px;
+        font-size: 1.05rem;
         font-family: monospace;
-        font-weight: 600;
+        font-weight: 700;
     }
-    .token-WORD { background-color: #E0F2FE; color: #0369A1; }
-    .token-TERMINATOR { background-color: #FEE2E2; color: #B91C1C; }
-    .token-PUNCT { background-color: #F1F5F9; color: #475569; }
-    .token-CONTRACTION { background-color: #FEF3C7; color: #B45309; }
-    .token-SOUND_FX { background-color: #FFEDD5; color: #C2410C; }
-    .token-ELLIPSIS { background-color: #EDE9FE; color: #6D28D9; }
-    .token-INTERROBANG { background-color: #FCE7F3; color: #BE185D; }
-    .token-NUMBER { background-color: #DCFCE7; color: #15803D; }
-    .token-UNKNOWN { background-color: #EF4444; color: #FFFFFF; }
+    .token-WORD { background-color: #0284C7; color: #FFFFFF; }
+    .token-TERMINATOR { background-color: #DC2626; color: #FFFFFF; }
+    .token-PUNCT { background-color: #64748B; color: #FFFFFF; }
+    .token-CONTRACTION { background-color: #D97706; color: #FFFFFF; }
+    .token-SOUND_FX { background-color: #EA580C; color: #FFFFFF; }
+    .token-ELLIPSIS { background-color: #7C3AED; color: #FFFFFF; }
+    .token-INTERROBANG { background-color: #DB2777; color: #FFFFFF; }
+    .token-NUMBER { background-color: #16A34A; color: #FFFFFF; }
+    .token-UNKNOWN { background-color: #EF4444; color: #FFFFFF; border: 2px solid #FEE2E2; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -227,8 +268,18 @@ def run_dashboard():
     with open(dataset_file, "r", encoding="utf-8", errors="ignore") as f:
         raw_lines = f.readlines()
 
-    limit_lines = st.sidebar.slider("Max lines to process:", 100, min(10000, len(raw_lines)), min(6500, len(raw_lines)), 500)
-    lines_to_process = raw_lines[:limit_lines]
+    total_raw = len(raw_lines)
+    if total_raw > 100:
+        limit_lines = st.sidebar.slider(
+            "Max lines to process:",
+            min_value=100,
+            max_value=min(10000, total_raw),
+            value=min(6500, total_raw),
+            step=100 if total_raw < 2000 else 500
+        )
+        lines_to_process = raw_lines[:limit_lines]
+    else:
+        lines_to_process = raw_lines
 
     # Run Analysis
     with st.spinner(f"Processing {len(lines_to_process):,} lines through compiler pipeline..."):
@@ -275,7 +326,11 @@ def run_dashboard():
         char_df = pd.DataFrame(report.character_rankings)
 
         if not char_df.empty:
-            top_n = st.slider("Display Top Characters:", 5, min(30, len(char_df)), 12)
+            num_chars = len(char_df)
+            if num_chars > 5:
+                top_n = st.slider("Display Top Characters:", min_value=3, max_value=min(30, num_chars), value=min(12, num_chars))
+            else:
+                top_n = num_chars
             sub_df = char_df.head(top_n).copy()
 
             # Stacked Bar Chart for Score Components
