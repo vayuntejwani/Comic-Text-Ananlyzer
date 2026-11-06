@@ -1167,13 +1167,20 @@ def run_dashboard():
             with net_col_left:
                 ctrl1, ctrl2 = st.columns([1, 1])
                 with ctrl1:
-                    net_top_n = st.slider(
-                        "Characters to show:",
-                        min_value=3,
-                        max_value=min(25, len(net_nodes_df)),
-                        value=min(12, len(net_nodes_df)),
-                        key="slider_net"
-                    )
+                    max_chars = max(1, len(net_nodes_df))
+                    min_chars = 1 if max_chars <= 3 else 3
+                    slider_val = min(12, max_chars)
+                    if min_chars == max_chars:
+                        net_top_n = max_chars
+                        st.write(f"Showing **{max_chars}** character{'s' if max_chars > 1 else ''}")
+                    else:
+                        net_top_n = st.slider(
+                            "Characters to show:",
+                            min_value=min_chars,
+                            max_value=min(25, max_chars),
+                            value=max(min_chars, slider_val),
+                            key="slider_net"
+                        )
                 with ctrl2:
                     color_metric = st.selectbox(
                         "Color nodes by:",
